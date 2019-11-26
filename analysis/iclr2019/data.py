@@ -39,6 +39,81 @@ class Dataset:
         self.minibatch_idx = 1e10
         self.train_perm = []
 
+    def introspection(self):
+
+        print("# Training images")
+        print(type(self.images_train))
+        print(self.images_train.shape)
+        print(self.images_train.dtype)
+        print(np.min(self.images_train))
+        print(np.mean(self.images_train))
+        print(np.median(self.images_train))
+        print(np.max(self.images_train))
+        print(np.std(self.images_train))
+
+        print("# Training responses")
+        print(type(self.responses_train))
+        print(self.responses_train.shape)
+        print(self.responses_train.dtype)
+        print(np.min(self.responses_train))
+        print(np.mean(self.responses_train))
+        print(np.median(self.responses_train))
+        print(np.max(self.responses_train))
+        # print(self.responses_train)
+        # print(self.responses_train[0])
+
+        print("# Testing images")
+        print(type(self.images_test))
+        print(self.images_test.shape)
+        print(self.images_test.dtype)
+        print(np.min(self.images_test))
+        print(np.mean(self.images_test))
+        print(np.median(self.images_test))
+        print(np.max(self.images_test))
+        print(np.std(self.images_test))
+
+        print("# Testing responses")
+        print(type(self.responses_test))
+        print(self.responses_test.shape)
+        print(self.responses_test.dtype)
+        print(np.min(self.responses_test))
+        print(np.mean(self.responses_test))
+        print(np.median(self.responses_test))
+        print(np.max(self.responses_test))
+        # print(self.responses_test)
+        # print(self.responses_test[0])
+
+        print("# Validation images")
+        print(type(self.images_val))
+        print(self.images_val.shape)
+        print(self.images_val.dtype)
+        print(np.min(self.images_val))
+        print(np.mean(self.images_val))
+        print(np.median(self.images_val))
+        print(np.max(self.images_val))
+        print(np.std(self.images_val))
+
+        print("# Validation responses")
+        print(type(self.responses_val))
+        print(self.responses_val.shape)
+        print(self.responses_val.dtype)
+        print(np.min(self.responses_val))
+        print(np.mean(self.responses_val))
+        print(np.median(self.responses_val))
+        print(np.max(self.responses_val))
+        # print(self.responses_val)
+        # print(self.responses_val[0])
+
+        print("num neurons: {}".format(self.num_neurons))
+        print("num train samples: {}".format(self.num_train_samples))
+        print("px x: {}".format(self.px_x))
+        print("px y: {}".format(self.px_y))
+        print("input shape: {}".format(self.input_shape))
+        print("minibatch idx: {}".format(self.minibatch_idx))
+        print("train_perm: {}".format(self.train_perm))
+
+        return
+
     def val(self):
         return self.images_val, self.responses_val
 
