@@ -121,12 +121,12 @@ class InitializableStackedConv2dCore:
                     if wi is None:
                         # Default to StackedConv2dCore (same behavior).
                         wi = tf.truncated_normal_initializer(mean=0.0, stddev=0.01)
-                    elif type(wi) is np.ndarray:
-                        # TODO check dimension + wrap np.array.
-
+                    elif type(wi) is np.ndarray:  # TODO remove (useless) ?
+                        # TODO check dimension?
+                        # TODO check dtype?
                         wi = tf.constant(wi)
                     else:
-                        raise NotImplementedError(type(wi))
+                        pass
                     reg = lambda w: smoothness_regularizer_2d(w, conv_smooth_weight * sm) + \
                                     group_sparsity_regularizer_2d(w, conv_sparse_weight * sp)
                     x = layers.convolution2d(inputs=x,
