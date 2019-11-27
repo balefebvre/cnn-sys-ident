@@ -89,6 +89,66 @@ class StackedConv2dCore:
                 self.output = tf.identity(self.conv[-1], name='output')
 
 
+class InitializableStackedConv2dCore:
+    def __init__(self,
+                 base,
+                 inputs,
+                 filter_size=[13, 3],
+                 num_filters=[16, 32],
+                 stride=[1, 1],
+                 rate=[1, 1],
+                 padding=['VALID', 'VALID'],
+                 activation_fn=['elu', 'elu'],
+                 rel_smooth_weight=[1, 0],
+                 rel_sparse_weight=[0, 1],
+                 conv_smooth_weight=0.001,
+                 conv_sparse_weight=0.001,
+                 scope='core',
+                 reuse=False,
+                 weights_initializers=[None, None],
+                 **kwargs):
+        with base.tf_session.graph.as_default():
+            with tf.variable_scope(scope, reuse=reuse):
+                self.conv = []
+                self.weights = []
+                x = inputs
+                for i, (fs, nf, st, rt, pd, fn, sm, sp, wi) in enumerate(
+                    zip(filter_size, num_filters, stride, rate, padding,
+                        activation_fn, rel_smooth_weight, rel_sparse_weight,
+                        weights_initializers)):
+                    bn_params = {'decay': 0.98, 'is_training': base.is_training}
+                    scope = 'conv{}'.format(i)
+                    if wi is None:
+                        # Default to StackedConv2dCore (same behavior).
+                        wi = tf.truncated_normal_initializer(mean=0.0, stddev=0.01)
+                    elif type(wi) is np.ndarray:
+                        # TODO check dimension + wrap np.array.
+
+                        wi = tf.constant(wi)
+                    else:
+                        raise NotImplementedError(type(wi))
+                    reg = lambda w: smoothness_regularizer_2d(w, conv_smooth_weight * sm) + \
+                                    group_sparsity_regularizer_2d(w, conv_sparse_weight * sp)
+                    x = layers.convolution2d(inputs=x,
+                                             num_outputs=int(nf),
+                                             kernel_size=int(fs),
+                                             stride=int(st),
+                                             rate=int(rt),
+                                             padding=pd,
+                                             activation_fn=ACTIVATION_FN[fn],
+                                             normalizer_fn=layers.batch_norm,
+                                             normalizer_params=bn_params,
+                                             weights_initializer=wi,
+                                             weights_regularizer=reg,
+                                             scope=scope)
+                    with tf.variable_scope(scope, reuse=True):
+                        weights = tf.get_variable('weights')
+                    self.weights.append(weights)
+                    self.conv.append(x)
+
+                self.output = tf.identity(self.conv[-1], name='output')
+
+
 class StackedRotEquiConv2dCore:
     def __init__(self,
                  base,
