@@ -34,7 +34,11 @@ class Trainer:
             val_loss = np.inf
             not_improved = 0
             iter_num = 0
+            tf.compat.v1.summary.scalar('train_loss', self.poisson)
             self.session.run(tf.compat.v1.global_variables_initializer())
+            merged_summaries = tf.compat.v1.summary.merge_all()
+            writer = tf.compat.v1.summary.FileWriter("logs/fit/train")
+            writer.add_graph(self.graph)
             for _ in range(lr_decay_steps):
                 while iter_num < max_iter:
 
@@ -54,6 +58,8 @@ class Trainer:
                                          self.base.is_training: False}
                         loss = self.session.run(self.poisson, feed_dict_val)
                         print('{:4d} | Loss: {:.2f}'.format(iter_num, loss))
+                        writer.add_summary(self.session.run(merged_summaries, feed_dict_val), global_step=iter_num)
+                        writer.flush()  # i.e. to be able to monitor summaries during training
                         if loss < val_loss:
                             val_loss = loss
                             self.base.tf_session.save()
