@@ -46,7 +46,10 @@ class TFSession:
 
     def load(self):
         with self.graph.as_default():
+            from tensorflow.python.util import deprecation
+            deprecation._PRINT_DEPRECATION_WARNINGS = False
             self.saver.restore(self.session, os.path.join(self.log_dir, 'model.ckpt'))
+            deprecation._PRINT_DEPRECATION_WARNINGS = True
 
 
 class BaseModel:
