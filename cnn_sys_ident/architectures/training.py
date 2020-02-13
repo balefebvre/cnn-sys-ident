@@ -14,11 +14,11 @@ class Trainer:
         self.data = base.data
         self.model = model
         with self.graph.as_default():
-            self.learning_rate = tf.placeholder(tf.float32, name='learning_rate')
+            self.learning_rate = tf.compat.v1.placeholder(tf.float32, name='learning_rate')
             self.poisson = poisson(model.predictions, base.responses)
-            self.reg_loss = tf.losses.get_regularization_loss()
+            self.reg_loss = tf.compat.v1.losses.get_regularization_loss()
             self.total_loss = self.poisson + self.reg_loss
-            self.train_step = tf.train.AdamOptimizer(
+            self.train_step = tf.compat.v1.train.AdamOptimizer(
                 self.learning_rate).minimize(self.total_loss)
 
     def fit(self,
@@ -29,12 +29,12 @@ class Trainer:
             patience=5,
             lr_decay_steps=2):
         with self.graph.as_default():
-            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
             inputs_val, res_val = self.data.val()
             val_loss = np.inf
             not_improved = 0
             iter_num = 0
-            self.session.run(tf.global_variables_initializer())
+            self.session.run(tf.compat.v1.global_variables_initializer())
             for _ in range(lr_decay_steps):
                 while iter_num < max_iter:
 
@@ -97,4 +97,3 @@ class Trainer:
             if np.std(res) > 1e-5 and np.std(pred) > 1e-5:
                 rho[i] = stats.pearsonr(res, pred)[0]
         return rho
-

@@ -5,7 +5,7 @@ from ..utils.hermite import rotation_matrix
 
 
 def soft_threshold(x):
-    return tf.log(tf.exp(x) + 1, name='soft_threshold')
+    return tf.math.log(tf.exp(x) + 1, name='soft_threshold')
 
 
 def inv_soft_threshold(x):
@@ -14,7 +14,7 @@ def inv_soft_threshold(x):
 
 def poisson(prediction, response):
     return tf.reduce_mean(tf.reduce_sum(
-        prediction - response * tf.log(prediction + 1e-5), 1), name='poisson')
+        prediction - response * tf.math.log(prediction + 1e-5), 1), name='poisson')
 
 
 def rotate_weights(weights, num_rotations, first_layer=False):
@@ -42,7 +42,7 @@ def rotate_weights(weights, num_rotations, first_layer=False):
 
 def rotate_weights_hermite(H, desc, mu, coeffs, num_rotations, first_layer=False):
     num_coeffs, num_inputs_total, num_outputs = coeffs.shape.as_list()
-    filter_size = int(H.shape[1])
+    # filter_size = int(H.shape[1])
     num_inputs = num_inputs_total // num_rotations
     weights_rotated = []
     for i in range(num_rotations):
@@ -54,7 +54,7 @@ def rotate_weights_hermite(H, desc, mu, coeffs, num_rotations, first_layer=False
                          name='weights_rotated_{}'.format(i))
         if i and not first_layer:
             shift = num_inputs_total - i * num_inputs
-            w = tf.concat([w[:,:,shift:,:], w[:,:,:shift,:]], axis=2)
+            w = tf.concat([w[:, :, shift:, :], w[:, :, :shift, :]], axis=2)
         weights_rotated.append(w)
     weights_all_rotations = tf.concat(weights_rotated, axis=3)
     return weights_all_rotations
@@ -64,7 +64,7 @@ def downsample_weights(weights, factor=2):
     w = 0
     for i in range(factor):
         for j in range(factor):
-            w += weights[i::factor,j::factor]
+            w += weights[i::factor, j::factor]
     return w
 
 
@@ -77,7 +77,7 @@ def envelope(w, k=51):
 
 
 def sta_init(x, y, k=51, alpha=10, max_val=0.1, sd=0.01):
-    x = x[:,:,:,0]
+    x = x[:, :, :, 0]
     x = (x - x.mean()) / x.std()
     y = (y - y.mean(axis=0)) / y.std(axis=0)
     w = np.tensordot(y, x, axes=[[0], [0]])

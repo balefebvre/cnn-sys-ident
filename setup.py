@@ -5,6 +5,9 @@ packages = [
     'cnn_sys_ident',
 ]
 install_requires = [
+    'numpy<1.17',
+    'scipy',
+    'tensorflow==1.14',
 ]
 setup_requires = [
 ]
