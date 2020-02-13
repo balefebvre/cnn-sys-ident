@@ -65,32 +65,48 @@ class StackedConv2dCore:
             with tf.compat.v1.variable_scope(scope, reuse=reuse):
                 self.conv = []
                 self.weights = []
+                nf_in = 1
                 x = inputs
                 for i, (fs, nf, st, rt, pd, fn, sm, sp) in enumerate(
                     zip(filter_size, num_filters, stride, rate, padding,
                         activation_fn, rel_smooth_weight, rel_sparse_weight)):
+                    nf_out = nf
                     bn_params = {'decay': 0.98, 'is_training': base.is_training}
                     scope = 'conv{}'.format(i)
                     reg = lambda w: \
                         smoothness_regularizer_2d(w, conv_smooth_weight * sm) \
                         + group_sparsity_regularizer_2d(w, conv_sparse_weight * sp)
-                    x = layers.convolution2d(inputs=x,
-                                             num_outputs=int(nf),
-                                             kernel_size=int(fs),
-                                             stride=int(st),
-                                             rate=int(rt),
-                                             padding=pd,
-                                             activation_fn=ACTIVATION_FN[fn],
-                                             normalizer_fn=layers.batch_norm,
-                                             normalizer_params=bn_params,
-                                             weights_initializer=tf.truncated_normal_initializer(
-                                                 mean=0.0, stddev=0.01),
-                                             weights_regularizer=reg,
-                                             scope=scope)
-                    with tf.compat.v1.variable_scope(scope, reuse=True):
-                        weights = tf.compat.v1.get_variable('weights')
+                    x = tf.keras.layers.Conv2D(
+                        int(nf),  # i.e. filters
+                        int(fs),  # i.e. kernel size
+                        strides=int(st),
+                        padding=pd,
+                        dilation_rate=int(rt),
+                        activation=ACTIVATION_FN[fn],
+                        kernel_initializer=tf.truncated_normal_initializer(
+                            mean=0.0, stddev=0.01,
+                        ),
+                        kernel_regularizer=reg,
+                        name=scope,
+                    )(
+                        x,  # i.e. inputs
+                    )
+                    x = tf.keras.layers.BatchNormalization(
+                        momentum=bn_params['decay'],
+                        name="{}_bn".format(scope)
+                    )(
+                        x,  # i.e. inputs
+                        training=bn_params['is_training']
+                    )
+                    with tf.compat.v1.variable_scope(scope, reuse=tf.compat.v1.AUTO_REUSE):
+                        weights = tf.compat.v1.get_variable(
+                            'weights',
+                            shape=[fs, fs, nf_in, nf_out],
+                            initializer=tf.truncated_normal_initializer(stddev=0.1)
+                        )
                     self.weights.append(weights)
                     self.conv.append(x)
+                    nf_in = nf_out
 
                 self.output = tf.identity(self.conv[-1], name='output')
 
