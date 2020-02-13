@@ -12,6 +12,7 @@ class Trainer:
         self.session = base.tf_session.session
         self.graph = base.tf_session.graph
         self.data = base.data
+        self.log_dir = base.tf_session.log_tensorboard
         self.model = model
         with self.graph.as_default():
             self.learning_rate = tf.compat.v1.placeholder(tf.float32, name='learning_rate')
@@ -37,7 +38,7 @@ class Trainer:
             tf.compat.v1.summary.scalar('train_loss', self.poisson)
             self.session.run(tf.compat.v1.global_variables_initializer())
             merged_summaries = tf.compat.v1.summary.merge_all()
-            writer = tf.compat.v1.summary.FileWriter("logs/fit/train")
+            writer = tf.compat.v1.summary.FileWriter(self.log_dir)
             writer.add_graph(self.graph)
             for _ in range(lr_decay_steps):
                 while iter_num < max_iter:

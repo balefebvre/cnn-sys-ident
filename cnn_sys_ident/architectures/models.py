@@ -1,8 +1,7 @@
-import tensorflow as tf
+import datetime
 import numpy as np
 import os
-import inspect
-import random
+import tensorflow as tf
 
 
 class TFSession:
@@ -17,12 +16,14 @@ class TFSession:
         return self._saver
 
     def __init__(self, log_dir=None, log_hash=None):
-        log_dir_ = os.path.dirname(os.path.dirname(os.path.dirname(inspect.stack()[0][1])))
-        log_dir = os.path.join(log_dir_, 'checkpoints' if log_dir is None else log_dir)
+        if log_dir is None:
+            log_dir = os.path.join(os.getcwd(), "logs")
         if log_hash is None:
-            log_hash = '%010x' % random.getrandbits(40)
+            log_hash = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_dir = os.path.join(log_dir, log_hash)
         self.log_hash = log_hash
+        self.log_checkpoints = os.path.join(self.log_dir, "checkpoints", "model.ckpt")
+        self.log_tensorboard = os.path.join(self.log_dir, "tensorboard")
         self.seed = int.from_bytes(log_hash[:4].encode('utf8'), 'big')
         self.graph = tf.Graph()
         with self.graph.as_default():
@@ -42,13 +43,13 @@ class TFSession:
 
     def save(self):
         with self.graph.as_default():
-            self.saver.save(self.session, os.path.join(self.log_dir, 'model.ckpt'))
+            self.saver.save(self.session, self.log_checkpoints)
 
     def load(self):
         with self.graph.as_default():
             from tensorflow.python.util import deprecation
             deprecation._PRINT_DEPRECATION_WARNINGS = False
-            self.saver.restore(self.session, os.path.join(self.log_dir, 'model.ckpt'))
+            self.saver.restore(self.session, self.log_checkpoints)
             deprecation._PRINT_DEPRECATION_WARNINGS = True
 
 
