@@ -102,7 +102,6 @@ class StackedConv2dCore:
                         weights = tf.compat.v1.get_variable(
                             'weights',
                             shape=[fs, fs, nf_in, nf_out],
-                            initializer=tf.truncated_normal_initializer(stddev=0.1)
                         )
                     self.weights.append(weights)
                     self.conv.append(x)
